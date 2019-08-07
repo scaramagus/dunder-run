@@ -6,9 +6,11 @@ from .utils import get_dunder_run_from_file
 
 
 def main():
-    sys.argv.pop(0)
+    # Since argv[0] is the path of the lib's entrypoint, we skip it
+    filename = sys.argv[1]
+    raw_args = sys.argv[2:]
 
-    run_function = get_dunder_run_from_file(sys.argv[0])
+    run_function = get_dunder_run_from_file(filename)
     parser = argparse.ArgumentParser(description=run_function.__doc__)
 
     signature = inspect.signature(run_function)
@@ -29,7 +31,7 @@ def main():
 
         parser.add_argument(parameter_name, **kw_options)
 
-    args = vars(parser.parse_args())
+    args = vars(parser.parse_args(raw_args))
     run_function(**args)
 
 
