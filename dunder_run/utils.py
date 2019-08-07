@@ -1,6 +1,7 @@
 from importlib import util
+from inspect import signature
 from pathlib import Path
-from typing import Callable
+from typing import Callable, List
 
 from .exceptions import EntrypointNotFoundError
 
@@ -18,3 +19,8 @@ def get_dunder_run_from_file(filename: str) -> Callable[..., None]:
     except AttributeError:
         message = f"__run__ function not found in file '{filename}'"
         raise EntrypointNotFoundError(message) from None
+
+
+def get_parameters(run_function: Callable[..., None]) -> List:
+    return signature(run_function).parameters.values()
+

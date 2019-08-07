@@ -1,8 +1,8 @@
-import argparse
 import inspect
 import sys
 
-from .utils import get_dunder_run_from_file
+from .parser import ArgumentParser
+from .utils import get_dunder_run_from_file, get_parameters
 
 
 def main():
@@ -11,27 +11,13 @@ def main():
     raw_args = sys.argv[2:]
 
     run_function = get_dunder_run_from_file(filename)
-    parser = argparse.ArgumentParser(description=run_function.__doc__)
-
-    signature = inspect.signature(run_function)
-    parameters = signature.parameters.values()
+    parser = ArgumentParser(description=run_function.__doc__)
+    parameters = get_parameters(run_function)
 
     for parameter in parameters:
-        annotation = getattr(parameter, 'annotation', str)
+        parser.add_argument(parameter.name, parameter.annotation)
 
-        if annotation is bool:
-            parameter_name = f'--{parameter.name}'
-            kw_options = {
-                'action': 'store_const',
-                'const': True,
-            }
-        else:
-            parameter_name = parameter.name
-            kw_options = {'type': annotation}
-
-        parser.add_argument(parameter_name, **kw_options)
-
-    args = vars(parser.parse_args(raw_args))
+    args = parser.parse_args(raw_args)
     run_function(**args)
 
 
