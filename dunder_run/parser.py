@@ -18,24 +18,19 @@ class ArgumentParser:
     def _get_list_options(self, parameter_name: str, item_type: Union[str, int]) -> Tuple[str, Dict]:
         raise NotImplementedError('Argument list is in the works!')
 
-    def _get_bool_options(self, parameter_name: str) -> Tuple[str, Dict]:
-        parameter_name = f'--{parameter_name}'
-        kw_options = {
-            'action': 'store_const',
-            'const': True,
-        }
-        return parameter_name, kw_options
-
     def add_argument(self, name: str, annotation: ArgumentType):
-        if annotation in (List[str], List[int]):
+        if annotation in (list, List[str], List[int]):
             item_type = annotation.__args__[0]  # Yes, that's how you access item types...
             parameter_name, kw_options = self._get_list_options(name, item_type)
         elif annotation is bool:
-            parameter_name, kw_options = self._get_bool_options(name)
-        else:
+            parameter_name = f'--{name}'
+            kw_options = {'action': 'store_true'}
+        elif annotation in (str, int):
             # Integers and strings get the simplest treatment
             parameter_name = name
             kw_options = {'type': annotation}
+        else:
+            raise ValueError(f'Unsupported annotation type "{annotation}"')
 
         self._parser.add_argument(parameter_name, **kw_options)
 
