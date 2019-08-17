@@ -1,26 +1,23 @@
 from importlib import util
-from inspect import signature
 from pathlib import Path
 from typing import Callable, List
 
-from .exceptions import EntrypointNotFoundError
 
+def get_function_from_file(program_name: str) -> Callable[..., None]:
+    try:
+        filename, function_name = program_name.split(':')
+    except ValueError:
+        filename = program_name
+        function_name = 'main'
 
-def get_dunder_run_from_file(filename: str) -> Callable[..., None]:
-    """Extracts the __run__ function from the given Python module.
-    """
     path_to_file = Path(filename)
-    spec = util.spec_from_file_location('__run__', path_to_file)
+    spec = util.spec_from_file_location(function_name, path_to_file)
     module = util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    function = getattr(module, function_name)
 
-    try:
-        return module.__run__
-    except AttributeError:
-        message = f"__run__ function not found in file '{filename}'"
-        raise EntrypointNotFoundError(message) from None
+    if not function:
+        message = f"'{function_name}' function not found in file '{filename}'"
+        raise AttributeError(message)
 
-
-def get_parameters(run_function: Callable[..., None]) -> List:
-    return signature(run_function).parameters.values()
-
+    return function

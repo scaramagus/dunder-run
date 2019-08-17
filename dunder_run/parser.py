@@ -1,6 +1,11 @@
 import argparse
-from inspect import Parameter, signature
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
+
+
+ArgumentType = Union[
+    str, int, bool,
+    List[str], List[int],
+]
 
 
 class ArgumentParser:
@@ -10,6 +15,9 @@ class ArgumentParser:
             description=description
         )
 
+    def _get_list_options(self, parameter_name: str, child_type: Union[str, int]) -> Tuple[str, Dict]:
+        raise NotImplementedError('Argument list is in the works!')
+
     def _get_bool_options(self, parameter_name: str) -> Tuple[str, Dict]:
         parameter_name = f'--{parameter_name}'
         kw_options = {
@@ -18,10 +26,13 @@ class ArgumentParser:
         }
         return parameter_name, kw_options
 
-    def add_argument(self, name: str, annotation: Any):
-        if annotation is bool:
+    def add_argument(self, name: str, annotation: ArgumentType):
+        if annotation in (List[str], List[int]):
+            parameter_name, kw_options = self._get_list_options(name, annotation)
+        elif annotation is bool:
             parameter_name, kw_options = self._get_bool_options(name)
         else:
+            # Integers and strings get the simplest treatment
             parameter_name = name
             kw_options = {'type': annotation}
 

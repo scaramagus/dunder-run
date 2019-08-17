@@ -1,4 +1,4 @@
-def __run__():
+def main():
     """
     Test function.
     """

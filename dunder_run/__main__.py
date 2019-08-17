@@ -1,8 +1,8 @@
-import inspect
 import sys
+from typing import get_type_hints
 
 from .parser import ArgumentParser
-from .utils import get_dunder_run_from_file, get_parameters
+from .utils import get_function_from_file
 
 
 def main():
@@ -10,12 +10,12 @@ def main():
     filename = sys.argv[1]
     raw_args = sys.argv[2:]
 
-    run_function = get_dunder_run_from_file(filename)
+    run_function = get_function_from_file(filename)
     parser = ArgumentParser(description=run_function.__doc__)
-    parameters = get_parameters(run_function)
+    parameters = get_type_hints(run_function)
 
-    for parameter in parameters:
-        parser.add_argument(parameter.name, parameter.annotation)
+    for name, annotation in parameters.items():
+        parser.add_argument(name, annotation)
 
     args = parser.parse_args(raw_args)
     run_function(**args)
